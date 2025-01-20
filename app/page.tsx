@@ -34,7 +34,19 @@ export default function TaskManager() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
   const [showSplashScreen, setShowSplashScreen] = useState(true)
 
-  const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor))
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
+  )
 
   useEffect(() => {
     const savedTasks = localStorage.getItem("tasks")
@@ -73,18 +85,15 @@ export default function TaskManager() {
     if (over && active.id !== over.id) {
       setTasks((tasks) => {
         const oldIndex = tasks.findIndex((task) => task.id === active.id)
-        const newIndex = tasks.findIndex((task) => task.id === over.id)
+        const newQuadrant = over.id as TaskData["quadrant"]
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-          const updatedTasks = arrayMove(tasks, oldIndex, newIndex)
-          const activeTask = updatedTasks[newIndex]
-          const overTask = tasks[newIndex]
+        if (oldIndex !== -1) {
+          const updatedTasks = [...tasks]
+          const [movedTask] = updatedTasks.splice(oldIndex, 1)
+          const updatedTask = { ...movedTask, quadrant: newQuadrant }
+          updatedTasks.push(updatedTask)
 
-          if (activeTask.quadrant !== overTask.quadrant) {
-            updatedTasks[newIndex] = { ...activeTask, quadrant: overTask.quadrant }
-            showToast(`Task moved to ${overTask.quadrant.replace("-", " ").toUpperCase()}`, "success")
-          }
-
+          showToast(`Task moved to ${newQuadrant.replace("-", " ").toUpperCase()}`, "success")
           return updatedTasks
         }
         return tasks
@@ -180,23 +189,23 @@ export default function TaskManager() {
                       >
                         <h2
                           className={`font-semibold flex items-center gap-2 ${quadrant === "do-first"
-                              ? "text-green-500"
-                              : quadrant === "do-later"
-                                ? "text-blue-500"
-                                : quadrant === "delegate"
-                                  ? "text-yellow-500"
-                                  : "text-red-500"
+                            ? "text-green-500"
+                            : quadrant === "do-later"
+                              ? "text-blue-500"
+                              : quadrant === "delegate"
+                                ? "text-yellow-500"
+                                : "text-red-500"
                             }`}
                         >
                           {quadrant.replace("-", " ").toUpperCase()}
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${quadrant === "do-first"
-                                ? "bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-300"
-                                : quadrant === "do-later"
-                                  ? "bg-blue-100 text-blue-500 dark:bg-blue-900 dark:text-blue-300"
-                                  : quadrant === "delegate"
-                                    ? "bg-yellow-100 text-yellow-500 dark:bg-yellow-900 dark:text-yellow-300"
-                                    : "bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-300"
+                              ? "bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-300"
+                              : quadrant === "do-later"
+                                ? "bg-blue-100 text-blue-500 dark:bg-blue-900 dark:text-blue-300"
+                                : quadrant === "delegate"
+                                  ? "bg-yellow-100 text-yellow-500 dark:bg-yellow-900 dark:text-yellow-300"
+                                  : "bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-300"
                               }`}
                           >
                             {tasks.filter((t) => t.quadrant === quadrant).length}
@@ -204,6 +213,7 @@ export default function TaskManager() {
                         </h2>
                         <TaskList
                           tasks={tasks.filter((task) => task.quadrant === quadrant)}
+                          quadrant={quadrant}
                           onEdit={editTask}
                           onDelete={deleteTask}
                           onComplete={completeTask}

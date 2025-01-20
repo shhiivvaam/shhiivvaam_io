@@ -1,20 +1,27 @@
 "use client"
 
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { useDroppable } from "@dnd-kit/core"
 import { SortableTask } from "./sortable-task"
 import type { TaskData } from "@/constants/types"
 import { motion, AnimatePresence } from "framer-motion"
 
 interface TaskListProps {
     tasks: TaskData[]
+    quadrant: string
     onEdit: (id: string, updates: Partial<TaskData>) => void
     onDelete: (id: string) => void
+    onComplete: (id: string) => void
 }
 
-export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
+export function TaskList({ tasks, quadrant, onEdit, onDelete, onComplete }: TaskListProps) {
+    const { setNodeRef } = useDroppable({
+        id: quadrant,
+    })
+
     return (
         <SortableContext items={tasks} strategy={verticalListSortingStrategy}>
-            <motion.div layout className="space-y-2">
+            <motion.div ref={setNodeRef} layout className="space-y-2 min-h-[100px]">
                 <AnimatePresence mode="popLayout">
                     {tasks.map((task) => (
                         <motion.div
@@ -24,7 +31,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                             exit={{ opacity: 0, x: -20 }}
                             layout
                         >
-                            <SortableTask task={task} onEdit={onEdit} onDelete={onDelete} />
+                            <SortableTask task={task} onEdit={onEdit} onDelete={onDelete} onComplete={onComplete} />
                         </motion.div>
                     ))}
                 </AnimatePresence>
@@ -32,4 +39,3 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
         </SortableContext>
     )
 }
-

@@ -29,7 +29,7 @@ export function CompletedTasks({ tasks, setTasks }: CompletedTasksProps) {
     }
 
     return (
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center justify-between w-full text-left text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-400"
@@ -70,4 +70,3 @@ export function CompletedTasks({ tasks, setTasks }: CompletedTasksProps) {
         </div>
     )
 }
-

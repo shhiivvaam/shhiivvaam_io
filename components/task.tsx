@@ -8,9 +8,9 @@ import { format } from "date-fns"
 
 interface TaskProps {
     task: TaskData
-    onEdit?: (id: string, updates: Partial<TaskData>) => void
-    onDelete?: (id: string) => void
-    onComplete?: (id: string) => void
+    onEdit: (id: string, updates: Partial<TaskData>) => void
+    onDelete: (id: string) => void
+    onComplete: (id: string) => void
 }
 
 export function Task({ task, onEdit, onDelete, onComplete }: TaskProps) {
@@ -33,7 +33,7 @@ export function Task({ task, onEdit, onDelete, onComplete }: TaskProps) {
     }
 
     const handleSave = () => {
-        if (onEdit && editedContent.trim() !== "") {
+        if (editedContent.trim() !== "") {
             onEdit(task.id, { content: editedContent.trim() })
             setIsEditing(false)
         }
@@ -85,43 +85,42 @@ export function Task({ task, onEdit, onDelete, onComplete }: TaskProps) {
                             </motion.div>
                         )}
                     </AnimatePresence>
-                    {onEdit && onDelete && onComplete && (
-                        <motion.div
-                            className="flex items-center gap-2"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: isHovered ? 1 : 0 }}
-                            transition={{ duration: 0.2 }}
+                    <motion.div
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: isHovered ? 1 : 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <motion.button
+                            onClick={() => setIsEditing(true)}
+                            className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                         >
-                            <motion.button
-                                onClick={() => setIsEditing(true)}
-                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                <Pencil className="w-4 h-4" />
-                            </motion.button>
-                            <motion.button
-                                onClick={() => onDelete(task.id)}
-                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </motion.button>
-                            <motion.button
-                                onClick={() => onComplete(task.id)}
-                                className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-green-500 hover:bg-green-100 dark:hover:bg-green-900"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                <CheckSquare className="w-4 h-4" />
-                            </motion.button>
-                        </motion.div>
-                    )}
+                            <Pencil className="w-4 h-4" />
+                        </motion.button>
+                        <motion.button
+                            onClick={() => onDelete(task.id)}
+                            className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-red-500 hover:bg-red-100 dark:hover:bg-red-900"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </motion.button>
+                        <motion.button
+                            onClick={() => onComplete(task.id)}
+                            className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 text-green-500 hover:bg-green-100 dark:hover:bg-green-900"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                        >
+                            <CheckSquare className="w-4 h-4" />
+                        </motion.button>
+                    </motion.div>
                 </div>
             </div>
-            <div className={`absolute inset-x-0 bottom-0 h-1 rounded-b-lg ${quadrantColors[task.quadrant]}`} />
+            <div
+                className={`absolute inset-x-0 bottom-0 h-1 rounded-b-lg ${quadrantColors[task.quadrant as keyof typeof quadrantColors]}`}
+            />
         </motion.div>
     )
 }
-

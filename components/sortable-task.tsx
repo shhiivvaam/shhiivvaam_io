@@ -9,9 +9,10 @@ interface SortableTaskProps {
     task: TaskData
     onEdit: (id: string, updates: Partial<TaskData>) => void
     onDelete: (id: string) => void
+    onComplete: (id: string) => void
 }
 
-export function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
+export function SortableTask({ task, onEdit, onDelete, onComplete }: SortableTaskProps) {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id })
 
     const style = {
@@ -21,7 +22,7 @@ export function SortableTask({ task, onEdit, onDelete }: SortableTaskProps) {
 
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <Task task={task} onEdit={onEdit} onDelete={onDelete} />
+            <Task task={task} onEdit={onEdit} onDelete={onDelete} onComplete={onComplete} />
         </div>
     )
 }
