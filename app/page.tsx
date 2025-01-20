@@ -9,6 +9,7 @@ import {
   MouseSensor,
   TouchSensor,
   type DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
 import { Plus, LayoutGrid, LayoutList, Moon, Sun, CheckSquare } from "lucide-react"
@@ -75,8 +76,8 @@ export default function TaskManager() {
   useHotkeys("v", () => setIsGridView((prev) => !prev))
   useHotkeys("d", () => setIsDarkMode((prev) => !prev))
 
-  const handleDragStart = (event: { active: { id: string } }) => {
-    setActiveId(event.active.id)
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id.toString())
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -144,16 +145,16 @@ export default function TaskManager() {
             <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
               <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {/* <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                     SuperTasks
                   </h1>
                   <span className="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-xs font-medium text-blue-500 dark:text-blue-300">
                     2.0
-                  </span> */}
-                  <h1 className="text-2xl font-bold bg-gradient-to-tl from-primary to-primary-100 bg-clip-text text-transparent">
+                  </span>
+                  {/* <h1 className="text-2xl font-bold bg-gradient-to-tl from-primary to-primary-100 bg-clip-text text-transparent">
                     SuperTasks
                   </h1>
-                  <span className="px-2 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary">2.0</span>
+                  <span className="px-2 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary">2.0</span> */}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -242,7 +243,7 @@ export default function TaskManager() {
 
               <motion.button
                 onClick={() => setIsAddModalOpen(true)}
-                className="fixed right-8 bottom-8 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                className="fixed right-20 mx-auto bottom-8 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
