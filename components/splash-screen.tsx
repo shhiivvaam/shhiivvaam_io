@@ -12,18 +12,26 @@ export function SplashScreen() {
                 className="text-center"
             >
                 <motion.h1
-                    className="text-4xl font-bold text-white mb-4"
+                    className="text-6xl font-bold text-white mb-4"
                     initial={{ y: -20 }}
                     animate={{ y: 0 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 120 }}
                 >
                     SuperTasks
                 </motion.h1>
+                <motion.p
+                    className="text-xl text-white mb-8"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                >
+                    Organize. Prioritize. Achieve.
+                </motion.p>
                 <motion.div
-                    className="w-16 h-16 border-t-4 border-white rounded-full animate-spin mx-auto"
+                    className="w-24 h-24 border-t-4 border-b-4 border-white rounded-full mx-auto"
                     initial={{ rotate: 0 }}
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
                 />
             </motion.div>
         </div>

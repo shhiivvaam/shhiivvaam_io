@@ -12,15 +12,15 @@ import {
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
 import { Plus, LayoutGrid, LayoutList, Moon, Sun, CheckSquare } from "lucide-react"
-import { TaskList } from "../components/task-list"
-import { Task } from "../components/task"
-import { AddTaskModal } from "../components/add-task-modal"
+import { TaskList } from "@/components/task-list"
+import { Task } from "@/components/task"
+import { AddTaskModal } from "@/components/add-task-modal"
 import { useHotkeys } from "react-hotkeys-hook"
-import type { TaskData } from "../constants/types"
-import { TaskStats } from "../components/task-stats"
-import { QuadrantGuide } from "../components/quadrant-guide"
+import type { TaskData } from "@/constants/types"
+import { TaskStats } from "@/components/task-stats"
+import { QuadrantGuide } from "@/components/quadrant-guide"
 import { motion, AnimatePresence } from "framer-motion"
-import { CustomToast } from "../components/custom-toast"
+import { CustomToast } from "@/components/custom-toast"
 import { CompletedTasks } from "@/components/completed-tasks"
 import { SplashScreen } from "@/components/splash-screen"
 
@@ -131,7 +131,7 @@ export default function TaskManager() {
         <SplashScreen />
       ) : (
         <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? "dark" : ""}`}>
-          <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
             <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
               <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -216,7 +216,7 @@ export default function TaskManager() {
                 <DragOverlay>{activeTask ? <Task task={activeTask} /> : null}</DragOverlay>
               </DndContext>
 
-              <CompletedTasks tasks={completedTasks} setTasks={setCompletedTasks} />
+              {completedTasks.length > 0 && <CompletedTasks tasks={completedTasks} setTasks={setCompletedTasks} />}
 
               <motion.button
                 onClick={() => setIsAddModalOpen(true)}
@@ -239,4 +239,3 @@ export default function TaskManager() {
     </>
   )
 }
-
