@@ -144,12 +144,16 @@ export default function TaskManager() {
             <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
               <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  {/* <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                     SuperTasks
                   </h1>
                   <span className="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-xs font-medium text-blue-500 dark:text-blue-300">
                     2.0
-                  </span>
+                  </span> */}
+                  <h1 className="text-2xl font-bold bg-gradient-to-tl from-primary to-primary-100 bg-clip-text text-transparent">
+                    SuperTasks
+                  </h1>
+                  <span className="px-2 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary">2.0</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
