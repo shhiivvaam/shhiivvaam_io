@@ -223,10 +223,18 @@ export default function TaskManager() {
                   </AnimatePresence>
                 </motion.div>
 
-                <DragOverlay>{activeTask ? <Task task={activeTask} /> : null}</DragOverlay>
+                <DragOverlay>
+                  {activeTask ? (
+                    <Task task={activeTask} onEdit={editTask} onDelete={deleteTask} onComplete={completeTask} />
+                  ) : null}
+                </DragOverlay>
               </DndContext>
 
-              {completedTasks.length > 0 && <CompletedTasks tasks={completedTasks} setTasks={setCompletedTasks} />}
+              {completedTasks.length > 0 && (
+                <div className="mt-8">
+                  <CompletedTasks tasks={completedTasks} setTasks={setCompletedTasks} />
+                </div>
+              )}
 
               <motion.button
                 onClick={() => setIsAddModalOpen(true)}
