@@ -4,6 +4,8 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import type { TaskData } from "@/constants/types"
+import { Label } from "@radix-ui/react-label"
+import { Input } from "./ui/input"
 
 interface AddTaskModalProps {
     isOpen: boolean
@@ -59,16 +61,15 @@ export function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalProps) {
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    Task Description
-                                </label>
-                                <textarea
+                                <Label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    Task description
+                                </Label>
+                                <Input
                                     id="content"
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    placeholder="Enter your task..."
+                                    placeholder="Enter your task.."
                                     className="w-full px-3 py-2 text-gray-700 dark:text-gray-300 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                                    rows={3}
                                 />
                             </div>
                             <div>
@@ -80,8 +81,8 @@ export function AddTaskModal({ isOpen, onClose, onAdd }: AddTaskModalProps) {
                                             type="button"
                                             onClick={() => setQuadrant(q)}
                                             className={`px-4 py-2 rounded-md text-sm font-medium ${quadrant === q
-                                                    ? "bg-blue-500 text-white"
-                                                    : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                                                ? "bg-blue-500 text-white"
+                                                : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                                                 } hover:bg-blue-400 dark:hover:bg-blue-600 transition-colors`}
                                         >
                                             {q.replace("-", " ")}
