@@ -3,6 +3,7 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { SortableTask } from "@/components/sortable-task"
 import type { TaskData } from "@/constants/types"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface TaskListProps {
     tasks: TaskData[]
@@ -13,12 +14,21 @@ interface TaskListProps {
 export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
     return (
         <SortableContext items={tasks} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-                {tasks.map((task) => (
-                    <SortableTask key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} />
-                ))}
-            </div>
+            <motion.div layout className="space-y-2">
+                <AnimatePresence mode="popLayout">
+                    {tasks.map((task) => (
+                        <motion.div
+                            key={task.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            layout
+                        >
+                            <SortableTask task={task} onEdit={onEdit} onDelete={onDelete} />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+            </motion.div>
         </SortableContext>
     )
 }
-

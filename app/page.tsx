@@ -1,101 +1,250 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from "react"
+import {
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import { arrayMove } from "@dnd-kit/sortable"
+import { Plus, LayoutGrid, LayoutList, Moon, Sun } from "lucide-react"
+import { TaskList } from "./components/task-list"
+import { Task } from "./components/task"
+import { AddTaskDialog } from "./components/add-task-dialog"
+import { useHotkeys } from "react-hotkeys-hook"
+import type { TaskData } from "./types"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
+import { TaskStats } from "./components/task-stats"
+import { QuadrantGuide } from "./components/quadrant-guide"
+import { CommandMenu } from "./components/command-menu"
+import { motion, AnimatePresence } from "framer-motion"
+
+export default function TaskManager() {
+  const [tasks, setTasks] = useState<TaskData[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isGridView, setIsGridView] = useState(true)
+  const [isDarkMode, setIsDarkMode] = useState(true)
+  const { toast } = useToast()
+
+  const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor))
+
+  // Load tasks from localStorage on mount
+  useEffect(() => {
+    const savedTasks = localStorage.getItem("tasks")
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks))
+    }
+  }, [])
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks))
+  }, [tasks])
+
+  // Handle keyboard shortcuts
+  useHotkeys("space", () => setIsAddDialogOpen(true))
+  useHotkeys("cmd+k", () => setIsAddDialogOpen(true))
+  useHotkeys("v", () => setIsGridView((prev) => !prev))
+  useHotkeys("d", () => setIsDarkMode((prev) => !prev))
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      setTasks((tasks) => {
+        const oldIndex = tasks.findIndex((task) => task.id === active.id)
+        const newIndex = tasks.findIndex((task) => task.id === over.id)
+
+        // Update task's quadrant if dropped in a different quadrant
+        const updatedTasks = arrayMove(tasks, oldIndex, newIndex)
+        const activeTask = updatedTasks[newIndex]
+        const overTask = tasks[newIndex]
+
+        if (activeTask.quadrant !== overTask.quadrant) {
+          updatedTasks[newIndex] = { ...activeTask, quadrant: overTask.quadrant }
+          toast({
+            title: "Task moved",
+            description: `Task moved to ${overTask.quadrant.replace("-", " ").toUpperCase()}`,
+          })
+        }
+
+        return updatedTasks
+      })
+    }
+    setActiveId(null)
+  }
+
+  const addTask = (task: TaskData) => {
+    setTasks((prev) => [...prev, task])
+    toast({
+      title: "Task added",
+      description: "Your new task has been created",
+    })
+  }
+
+  const editTask = (id: string, updates: Partial<TaskData>) => {
+    setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, ...updates } : task)))
+    toast({
+      title: "Task updated",
+      description: "Your task has been updated successfully",
+    })
+  }
+
+  const deleteTask = (id: string) => {
+    setTasks((prev) => prev.filter((task) => task.id !== id))
+    toast({
+      title: "Task deleted",
+      description: "Your task has been deleted",
+    })
+  }
+
+  const activeTask = activeId ? tasks.find((task) => task.id === activeId) : null
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? "dark" : ""}`}>
+      <div className="min-h-screen bg-gradient-to-br from-background to-background/95 text-foreground">
+        <header className="border-b">
+          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-foreground bg-clip-text text-transparent">
+                SuperTasks
+              </h1>
+              <span className="px-2 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary">2.0</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => setIsGridView((prev) => !prev)} className="relative">
+                {isGridView ? <LayoutGrid className="w-5 h-5" /> : <LayoutList className="w-5 h-5" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setIsDarkMode((prev) => !prev)}>
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </Button>
+            </div>
+          </div>
+        </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <main className="max-w-7xl mx-auto px-4 py-8">
+          <div className="mb-8">
+            <TaskStats tasks={tasks} />
+          </div>
+
+          <motion.div layout className={`grid gap-6 ${isGridView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+            <AnimatePresence mode="wait">
+              <div className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-2"
+                >
+                  <h2 className="text-[#00ff00] font-semibold flex items-center gap-2">
+                    DO FIRST
+                    <span className="text-xs bg-[#00ff00]/10 text-[#00ff00] px-2 py-1 rounded-full">
+                      {tasks.filter((t) => t.quadrant === "do-first").length}
+                    </span>
+                  </h2>
+                  <TaskList
+                    tasks={tasks.filter((task) => task.quadrant === "do-first")}
+                    onEdit={editTask}
+                    onDelete={deleteTask}
+                  />
+                </motion.div>
+              </div>
+
+              <div className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-2"
+                >
+                  <h2 className="text-[#008080] font-semibold flex items-center gap-2">
+                    DO LATER
+                    <span className="text-xs bg-[#008080]/10 text-[#008080] px-2 py-1 rounded-full">
+                      {tasks.filter((t) => t.quadrant === "do-later").length}
+                    </span>
+                  </h2>
+                  <TaskList
+                    tasks={tasks.filter((task) => task.quadrant === "do-later")}
+                    onEdit={editTask}
+                    onDelete={deleteTask}
+                  />
+                </motion.div>
+              </div>
+
+              <div className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-2"
+                >
+                  <h2 className="text-[#ffd700] font-semibold flex items-center gap-2">
+                    DELEGATE
+                    <span className="text-xs bg-[#ffd700]/10 text-[#ffd700] px-2 py-1 rounded-full">
+                      {tasks.filter((t) => t.quadrant === "delegate").length}
+                    </span>
+                  </h2>
+                  <TaskList
+                    tasks={tasks.filter((task) => task.quadrant === "delegate")}
+                    onEdit={editTask}
+                    onDelete={deleteTask}
+                  />
+                </motion.div>
+              </div>
+
+              <div className="space-y-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-2"
+                >
+                  <h2 className="text-[#ff4500] font-semibold flex items-center gap-2">
+                    ELIMINATE
+                    <span className="text-xs bg-[#ff4500]/10 text-[#ff4500] px-2 py-1 rounded-full">
+                      {tasks.filter((t) => t.quadrant === "eliminate").length}
+                    </span>
+                  </h2>
+                  <TaskList
+                    tasks={tasks.filter((task) => task.quadrant === "eliminate")}
+                    onEdit={editTask}
+                    onDelete={deleteTask}
+                  />
+                </motion.div>
+              </div>
+            </AnimatePresence>
+          </motion.div>
+
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="fixed left-1/2 bottom-8 -translate-x-1/2 shadow-lg hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90"
+            size="lg"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <Plus className="w-5 h-5 mr-2" />
+            Add Task
+          </Button>
+
+          <AddTaskDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onAdd={addTask} />
+
+          <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <DragOverlay>{activeTask ? <Task task={activeTask} /> : null}</DragOverlay>
+          </DndContext>
+        </main>
+
+        <QuadrantGuide />
+        <CommandMenu open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCreateTask={addTask} />
+      </div>
     </div>
-  );
+  )
 }
