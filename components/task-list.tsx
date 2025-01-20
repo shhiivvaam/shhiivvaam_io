@@ -1,7 +1,7 @@
 "use client"
 
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
-import { SortableTask } from "@/components/sortable-task"
+import { SortableTask } from "./sortable-task"
 import type { TaskData } from "@/constants/types"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -32,3 +32,4 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
         </SortableContext>
     )
 }
+

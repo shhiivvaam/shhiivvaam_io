@@ -13,29 +13,26 @@ import {
 } from "@dnd-kit/core"
 import { arrayMove } from "@dnd-kit/sortable"
 import { Plus, LayoutGrid, LayoutList, Moon, Sun } from "lucide-react"
-import { TaskList } from "./components/task-list"
-import { Task } from "./components/task"
-import { AddTaskDialog } from "./components/add-task-dialog"
+import { TaskList } from "@/components/task-list"
+import { Task } from "@/components/task"
+import { AddTaskModal } from "@/components/add-task-modal"
 import { useHotkeys } from "react-hotkeys-hook"
-import type { TaskData } from "./types"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { TaskStats } from "./components/task-stats"
-import { QuadrantGuide } from "./components/quadrant-guide"
-import { CommandMenu } from "./components/command-menu"
+import type { TaskData } from "@/constants/types"
+import { TaskStats } from "@/components/task-stats"
+import { QuadrantGuide } from "@/components/quadrant-guide"
 import { motion, AnimatePresence } from "framer-motion"
+import { CustomToast } from "@/components/custom-toast"
 
 export default function TaskManager() {
   const [tasks, setTasks] = useState<TaskData[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isGridView, setIsGridView] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const { toast } = useToast()
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
 
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor))
 
-  // Load tasks from localStorage on mount
   useEffect(() => {
     const savedTasks = localStorage.getItem("tasks")
     if (savedTasks) {
@@ -43,14 +40,11 @@ export default function TaskManager() {
     }
   }, [])
 
-  // Save tasks to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks))
   }, [tasks])
 
-  // Handle keyboard shortcuts
-  useHotkeys("space", () => setIsAddDialogOpen(true))
-  useHotkeys("cmd+k", () => setIsAddDialogOpen(true))
+  useHotkeys("a", () => setIsAddModalOpen(true))
   useHotkeys("v", () => setIsGridView((prev) => !prev))
   useHotkeys("d", () => setIsDarkMode((prev) => !prev))
 
@@ -66,17 +60,13 @@ export default function TaskManager() {
         const oldIndex = tasks.findIndex((task) => task.id === active.id)
         const newIndex = tasks.findIndex((task) => task.id === over.id)
 
-        // Update task's quadrant if dropped in a different quadrant
         const updatedTasks = arrayMove(tasks, oldIndex, newIndex)
         const activeTask = updatedTasks[newIndex]
         const overTask = tasks[newIndex]
 
         if (activeTask.quadrant !== overTask.quadrant) {
           updatedTasks[newIndex] = { ...activeTask, quadrant: overTask.quadrant }
-          toast({
-            title: "Task moved",
-            description: `Task moved to ${overTask.quadrant.replace("-", " ").toUpperCase()}`,
-          })
+          showToast(`Task moved to ${overTask.quadrant.replace("-", " ").toUpperCase()}`, "success")
         }
 
         return updatedTasks
@@ -87,48 +77,52 @@ export default function TaskManager() {
 
   const addTask = (task: TaskData) => {
     setTasks((prev) => [...prev, task])
-    toast({
-      title: "Task added",
-      description: "Your new task has been created",
-    })
+    showToast("Task added successfully", "success")
   }
 
   const editTask = (id: string, updates: Partial<TaskData>) => {
     setTasks((prev) => prev.map((task) => (task.id === id ? { ...task, ...updates } : task)))
-    toast({
-      title: "Task updated",
-      description: "Your task has been updated successfully",
-    })
+    showToast("Task updated successfully", "success")
   }
 
   const deleteTask = (id: string) => {
     setTasks((prev) => prev.filter((task) => task.id !== id))
-    toast({
-      title: "Task deleted",
-      description: "Your task has been deleted",
-    })
+    showToast("Task deleted", "success")
+  }
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
   }
 
   const activeTask = activeId ? tasks.find((task) => task.id === activeId) : null
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? "dark" : ""}`}>
-      <div className="min-h-screen bg-gradient-to-br from-background to-background/95 text-foreground">
-        <header className="border-b">
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100">
+        <header className="border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-foreground bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                 SuperTasks
               </h1>
-              <span className="px-2 py-1 rounded-full bg-primary/10 text-xs font-medium text-primary">2.0</span>
+              <span className="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-xs font-medium text-blue-500 dark:text-blue-300">
+                2.0
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => setIsGridView((prev) => !prev)} className="relative">
+              <button
+                onClick={() => setIsGridView((prev) => !prev)}
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
                 {isGridView ? <LayoutGrid className="w-5 h-5" /> : <LayoutList className="w-5 h-5" />}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => setIsDarkMode((prev) => !prev)}>
+              </button>
+              <button
+                onClick={() => setIsDarkMode((prev) => !prev)}
+                className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </Button>
+              </button>
             </div>
           </div>
         </header>
@@ -140,102 +134,59 @@ export default function TaskManager() {
 
           <motion.div layout className={`grid gap-6 ${isGridView ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
             <AnimatePresence mode="wait">
-              <div className="space-y-4">
+              {["do-first", "do-later", "delegate", "eliminate"].map((quadrant) => (
                 <motion.div
+                  key={quadrant}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   className="space-y-2"
                 >
-                  <h2 className="text-[#00ff00] font-semibold flex items-center gap-2">
-                    DO FIRST
-                    <span className="text-xs bg-[#00ff00]/10 text-[#00ff00] px-2 py-1 rounded-full">
-                      {tasks.filter((t) => t.quadrant === "do-first").length}
+                  <h2
+                    className={`font-semibold flex items-center gap-2 ${quadrant === "do-first"
+                      ? "text-green-500"
+                      : quadrant === "do-later"
+                        ? "text-blue-500"
+                        : quadrant === "delegate"
+                          ? "text-yellow-500"
+                          : "text-red-500"
+                      }`}
+                  >
+                    {quadrant.replace("-", " ").toUpperCase()}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${quadrant === "do-first"
+                        ? "bg-green-100 text-green-500 dark:bg-green-900 dark:text-green-300"
+                        : quadrant === "do-later"
+                          ? "bg-blue-100 text-blue-500 dark:bg-blue-900 dark:text-blue-300"
+                          : quadrant === "delegate"
+                            ? "bg-yellow-100 text-yellow-500 dark:bg-yellow-900 dark:text-yellow-300"
+                            : "bg-red-100 text-red-500 dark:bg-red-900 dark:text-red-300"
+                        }`}
+                    >
+                      {tasks.filter((t) => t.quadrant === quadrant).length}
                     </span>
                   </h2>
                   <TaskList
-                    tasks={tasks.filter((task) => task.quadrant === "do-first")}
+                    tasks={tasks.filter((task) => task.quadrant === quadrant)}
                     onEdit={editTask}
                     onDelete={deleteTask}
                   />
                 </motion.div>
-              </div>
-
-              <div className="space-y-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-2"
-                >
-                  <h2 className="text-[#008080] font-semibold flex items-center gap-2">
-                    DO LATER
-                    <span className="text-xs bg-[#008080]/10 text-[#008080] px-2 py-1 rounded-full">
-                      {tasks.filter((t) => t.quadrant === "do-later").length}
-                    </span>
-                  </h2>
-                  <TaskList
-                    tasks={tasks.filter((task) => task.quadrant === "do-later")}
-                    onEdit={editTask}
-                    onDelete={deleteTask}
-                  />
-                </motion.div>
-              </div>
-
-              <div className="space-y-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-2"
-                >
-                  <h2 className="text-[#ffd700] font-semibold flex items-center gap-2">
-                    DELEGATE
-                    <span className="text-xs bg-[#ffd700]/10 text-[#ffd700] px-2 py-1 rounded-full">
-                      {tasks.filter((t) => t.quadrant === "delegate").length}
-                    </span>
-                  </h2>
-                  <TaskList
-                    tasks={tasks.filter((task) => task.quadrant === "delegate")}
-                    onEdit={editTask}
-                    onDelete={deleteTask}
-                  />
-                </motion.div>
-              </div>
-
-              <div className="space-y-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-2"
-                >
-                  <h2 className="text-[#ff4500] font-semibold flex items-center gap-2">
-                    ELIMINATE
-                    <span className="text-xs bg-[#ff4500]/10 text-[#ff4500] px-2 py-1 rounded-full">
-                      {tasks.filter((t) => t.quadrant === "eliminate").length}
-                    </span>
-                  </h2>
-                  <TaskList
-                    tasks={tasks.filter((task) => task.quadrant === "eliminate")}
-                    onEdit={editTask}
-                    onDelete={deleteTask}
-                  />
-                </motion.div>
-              </div>
+              ))}
             </AnimatePresence>
           </motion.div>
 
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="fixed left-1/2 bottom-8 -translate-x-1/2 shadow-lg hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90"
-            size="lg"
+          <motion.button
+            onClick={() => setIsAddModalOpen(true)}
+            className="fixed left-1/2 bottom-8 -translate-x-1/2 px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <Plus className="w-5 h-5 mr-2" />
+            <Plus className="w-5 h-5 mr-2 inline-block" />
             Add Task
-          </Button>
+          </motion.button>
 
-          <AddTaskDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onAdd={addTask} />
+          <AddTaskModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={addTask} />
 
           <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <DragOverlay>{activeTask ? <Task task={activeTask} /> : null}</DragOverlay>
@@ -243,7 +194,7 @@ export default function TaskManager() {
         </main>
 
         <QuadrantGuide />
-        <CommandMenu open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onCreateTask={addTask} />
+        {toast && <CustomToast message={toast.message} type={toast.type} />}
       </div>
     </div>
   )
