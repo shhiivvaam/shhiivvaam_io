@@ -3,4 +3,5 @@ export interface TaskData {
     content: string
     quadrant: "do-first" | "do-later" | "delegate" | "eliminate"
     createdAt: string
+    completedAt?: string
 }
